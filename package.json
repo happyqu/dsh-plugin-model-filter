@@ -1,0 +1,60 @@
+{
+  "name": "@happyqu/dsh-plugin-model-filter",
+  "version": "0.1.0",
+  "description": "deepseek-harness plugin: adds a model filter box to the composer model selector menu",
+  "type": "module",
+  "main": "lib/index.js",
+  "exports": {
+    ".": {
+      "default": "./lib/index.js"
+    },
+    "./client": "./lib/client.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib",
+    "cordis.patch.yml",
+    "README.md",
+    "LICENSE"
+  ],
+  "keywords": [
+    "dsh",
+    "deepseek-harness",
+    "cordis",
+    "plugin",
+    "model",
+    "filter"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "immediately": true,
+      "inject": [
+        "@deepseek-ai/dsh-client-ui-conversation"
+      ]
+    }
+  },
+  "engines": {
+    "node": "^22.19.0 || >=24.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/happyqu/dsh-plugin-model-filter.git"
+  },
+  "bugs": {
+    "url": "https://github.com/happyqu/dsh-plugin-model-filter/issues"
+  },
+  "homepage": "https://github.com/happyqu/dsh-plugin-model-filter#readme",
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "scripts": {
+    "test": "node scripts/verify-client.mjs",
+    "prepublishOnly": "npm test"
+  },
+  "license": "MIT"
+}
