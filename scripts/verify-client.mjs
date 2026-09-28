@@ -239,6 +239,14 @@ check('the bundle patch inserts this same package name', () => {
   assert.deepEqual(inserted, [packageName])
 })
 
+check('reasoning metadata is normalized against null before use', () => {
+  // Catalog rows serialize "no effort metadata" as JSON null, and the shipped
+  // control defends with `?.` — a copy that reads `.defaultEffort` through a
+  // plain `null` crashes on render, the seat abdicates, and the plugin appears
+  // to "work only in the first conversation". Guard it at the source.
+  assert.match(source, /model\.reasoning \|\| undefined/)
+})
+
 check('plugin exports name, inject and apply', () => {
   assert.equal(plugin.name, 'model-filter')
   assert.deepEqual(plugin.inject, ['slots', 'locale'])

@@ -1,6 +1,6 @@
 {
   "name": "@happyqu/dsh-plugin-model-filter",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "description": "deepseek-harness plugin: adds a model filter box to the composer model selector menu",
   "type": "module",
   "main": "lib/index.js",
