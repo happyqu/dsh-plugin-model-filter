@@ -1,5 +1,5 @@
 /**
- * Static verification for dsh-plugin-model-filter's Client half.
+ * Static verification for @happyqu/dsh-plugin-model-filter's Client half.
  *
  * There is no browser test runner here, so this script proves the things a
  * silent failure would hide: the module parses and its factory returns a
@@ -21,6 +21,15 @@ import assert from 'node:assert/strict'
 const here = dirname(fileURLToPath(import.meta.url))
 const clientPath = join(here, '..', 'lib', 'client.js')
 const source = readFileSync(clientPath, 'utf8')
+
+// The boot graph derives a Client bundle's module id from its package name, so
+// `__ModuleLoader__.load({ id })` must equal `package.json`'s `name` verbatim.
+// Reading it here rather than hardcoding it is what keeps a package rename from
+// silently breaking activation (the bundle would load but register nothing, and
+// the loader would report "loaded without registering <id>").
+const packageName = JSON.parse(
+  readFileSync(join(here, '..', 'package.json'), 'utf8'),
+).name
 
 let failures = 0
 const check = (label, fn) => {
@@ -214,7 +223,20 @@ await import(`${new URL('file:///' + clientPath.replaceAll('\\', '/'))}?t=${Date
 const plugin = globalThis.__plugin
 
 check('module registers exactly one factory under the package name', () => {
-  assert.deepEqual(loaded, ['dsh-plugin-model-filter'])
+  assert.deepEqual(loaded, [packageName])
+})
+
+check('the stylesheet tag is attributed to the package name', () => {
+  const plugin = [...source.matchAll(/el\.dataset\.plugin = "([^"]+)"/g)].map(
+    (m) => m[1],
+  )
+  assert.deepEqual(plugin, [packageName])
+})
+
+check('the bundle patch inserts this same package name', () => {
+  const patch = readFileSync(join(here, '..', 'cordis.patch.yml'), 'utf8')
+  const inserted = [...patch.matchAll(/^\s*name:\s*'([^']+)'/gm)].map((m) => m[1])
+  assert.deepEqual(inserted, [packageName])
 })
 
 check('plugin exports name, inject and apply', () => {
