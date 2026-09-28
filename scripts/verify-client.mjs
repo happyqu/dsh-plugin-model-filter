@@ -258,6 +258,7 @@ check('plugin exports name, inject and apply', () => {
 const effectDisposers = []
 const localeDicts = {}
 let injectedSlotsCallback = null
+let injectedDeps = null
 
 const fakeScope = {
   modelDirectories: {
@@ -291,12 +292,33 @@ const ctx = {
     },
   },
   inject: (deps, callback) => {
-    assert.deepEqual(deps, ['slots', 'modelDirectories', 'sessions'])
+    injectedDeps = deps
     callback(fakeScope)
   },
 }
 
 plugin.apply(ctx)
+
+// `modelDirectories.directoryFor()` builds a ModelDirectory with
+// `this.ctx.remote.session`, and a proxied service method resolves `this.ctx`
+// through the CALLER's scope. So this plugin must declare `remote` and
+// `remote.session` itself, or every session whose directory does not already
+// exist throws `cannot get property "remote.session" without inject` — the seat
+// then abdicates and the filter box disappears on all but the first
+// conversation. Assert the declaration here so the copy cannot drift again.
+check('the soft injection declares every service directoryFor reads', () => {
+  for (const required of ['slots', 'modelDirectories', 'sessions', 'remote', 'remote.session']) {
+    assert.ok(
+      injectedDeps.includes(required),
+      `missing "${required}" in ctx.inject([...]) — directoryFor() would throw for a fresh session`,
+    )
+  }
+})
+
+check('the seat inject resolves a directory through the service', () => {
+  // Guard the call site too: it is what evaluates `this.ctx` in the caller scope.
+  assert.match(source, /models\.directoryFor\(sessionId\)/)
+})
 
 check('apply installs both effects (stylesheet and dictionaries)', () => {
   assert.equal(effectDisposers.length, 2)
